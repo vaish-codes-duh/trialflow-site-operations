@@ -1,0 +1,21 @@
+# Keep production AND previews Private in Netlify's project visibility controls.
+# Repository privacy is separate from deployment access.
+[build]
+  command = "npm test && npm run build:netlify"
+  publish = ".netlify/trialflow/public"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "24"
+  NETLIFY_NEXT_PLUGIN_SKIP = "true"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "same-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'; base-uri 'self'"

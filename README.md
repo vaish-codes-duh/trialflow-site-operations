@@ -41,7 +41,7 @@ Open the local address printed by the server and choose **Explore training sandb
 npm run build
 ```
 
-The shared workspace depends on the managed hosting platform's verified identity headers and a D1 database. Local sandbox exploration does not verify the hosted sign-in flow. Do not expose a raw development Worker as a trusted authenticated clinical service.
+The original shared deployment depends on the managed hosting platform's verified identity headers and a D1 database. The additional Netlify adapter uses verified Netlify team login, a Function and conditional SQLite snapshot storage in Netlify Blobs. See [private Netlify setup](docs/NETLIFY.md). Local sandbox exploration does not verify either hosted sign-in flow.
 
 ## Computational approach
 
@@ -59,8 +59,8 @@ The model is deterministic. It uses no machine learning or LLM inference, and it
 |---|---|
 | Interface | JavaScript ES modules, HTML, CSS |
 | Shared rules | `public/domain.mjs` |
-| Server | JavaScript/TypeScript, Vinext route handlers, Cloudflare Worker |
-| Persistence | Cloudflare D1 / SQLite with Drizzle migrations |
+| Server | JavaScript/TypeScript; Cloudflare Worker or Netlify Function adapters |
+| Persistence | D1, or bounded SQLite snapshots in Netlify Blobs; shared SQL schema |
 | API and authorization | `lib/pilot-api.mjs` |
 | Fictional fixtures | `lib/seed.mjs`, `lib/legacy/` |
 | Tests | Node test runner and a real SQLite D1 adapter |
@@ -69,15 +69,17 @@ See [architecture, setup and model details](docs/ARCHITECTURE.md) and [validatio
 
 ## Validation and limits
 
-**49 automated tests pass:** 21 original simulator regressions and 28 domain/API tests. Coverage includes permissions, independent QC, source-flag separation, CSV validation and atomicity, concurrent updates, forecasting, restore behavior and pilot-session ownership. GitHub Actions is configured to install, test and build; its remote run must be checked after pushing.
+**55 automated tests pass:** 21 original simulator regressions, 28 domain/API tests and 6 Netlify adapter tests. Coverage includes permissions, independent QC, source-flag separation, CSV validation and atomicity, concurrent updates, forecasting, restore behavior, pilot-session ownership, verified Netlify identity and conditional snapshot persistence. GitHub Actions installs, tests and builds both hosting targets.
 
 Browser smoke tests used the clearly labelled training sandbox. Live owner authentication, real multi-user testing, mobile-device evaluation, formal clinical validation and an institutional security review remain outstanding. No human usability study has been conducted yet.
 
 ## Hosting configuration
 
-This repository deliberately omits the live Site identity. `.openai/hosting.json` contains `project_id: null` plus the required `DB` binding declaration. A new deployment must set its own hosting identity and apply the schema-only migrations. Merely pushing to GitHub does not publish or change the private application.
+For Netlify, follow [the private hosting guide](docs/NETLIFY.md) and use the committed `netlify.toml`. Connect this repository and keep production and previews private. A connected project's GitHub pushes can trigger deploys; privacy is an independent project setting. The new adapter starts a separate workspace and does not migrate saved data from the original deployment.
 
-The shared runtime requires:
+For the original managed Sites target, this repository deliberately omits the live Site identity. `.openai/hosting.json` contains `project_id: null` plus the required `DB` binding declaration. A new Sites deployment must set its own hosting identity and apply the schema-only migrations.
+
+The original Sites runtime requires:
 
 | Setting | Purpose |
 |---|---|

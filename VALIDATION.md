@@ -1,5 +1,13 @@
 # Validation record · v3
 
+## Netlify adapter · 2026-11-18
+
+The complete automated suite passes **55 tests**: the existing 49 plus six Netlify adapter integration tests. Both API suites now use the same real SQLite/D1 adapter as the Netlify function. New tests cover verified-context identity (including expiration and missing email), spoofed client identity rejection, fail-closed configuration, persistent checklist progress and audit, unchanged safety source flags, creation/update races, no losing audit commit, read-only behavior, storage failures/size limits, isolated previews, same-origin protection and temporary-file cleanup.
+
+Both the original framework build and `npm run build:netlify` succeeded locally. The Netlify function bundled successfully with esbuild for Node 24; the bundle returned 401 with no verified identity. The static publish directory contains only seven allowlisted frontend assets. Its empty schema template and API source stay outside that directory.
+
+The existing Netlify project was observed linked to the private GitHub repository and was changed to **Private for production and previews**. Netlify reports that production deploys are paused because the team is on operational credits. No successful live Netlify deployment, platform identity round trip or live persistence test has been completed. The reserved URL is not deployment validation. Keep these checks outstanding until the account can deploy; no real trial data has been migrated.
+
 Date: 2026-11-17 (America/Phoenix).
 
 ## Automated checks
