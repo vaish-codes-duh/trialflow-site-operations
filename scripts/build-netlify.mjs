@@ -4,6 +4,8 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {html} from '../lib/html.ts';
+import {seedWorkspace} from '../lib/seed.mjs';
+import {localDate} from '../public/domain.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = join(root, '.netlify/trialflow');
@@ -12,15 +14,22 @@ await rm(output, {recursive: true, force: true});
 await mkdir(publish, {recursive: true});
 
 // Explicit allowlist: source, credentials, schema and database stay unpublished.
-for (const name of ['domain.mjs', 'trialflow.mjs', 'trialflow.css', 'fonts.css', 'favicon.svg']) {
+for (const name of ['domain.mjs', 'training-loader.mjs', 'trialflow.mjs', 'trialflow.css', 'fonts.css', 'favicon.svg']) {
   await copyFile(join(root, 'public', name), join(publish, name));
 }
 await writeFile(join(publish, 'index.html'), html);
 await writeFile(join(publish, 'hosting.mjs'), `export const AUTH = ${JSON.stringify({
+  trainingPath: '/training.json',
   signInPath: '/', signInLabel: 'Reopen private workspace',
   accountPath: 'https://app.netlify.com/', accountLabel: 'Netlify account ↗',
   switchPath: 'https://app.netlify.com/', switchLabel: 'Open Netlify account',
 })};\n`);
+
+// Only bundled fictional fixtures are published; never read shared storage here.
+const trainingDate = localDate();
+const trainingWorkspace = seedWorkspace('sandbox', trainingDate);
+trainingWorkspace.settings.simulationDate = trainingDate;
+await writeFile(join(publish, 'training.json'), JSON.stringify({workspace: trainingWorkspace}));
 
 // Build schema only, once. No request-time migration or bundled user records.
 const temporary = await mkdtemp(join(tmpdir(), 'trialflow-schema-'));
@@ -43,3 +52,4 @@ try {
   await rm(temporary, {recursive: true, force: true});
 }
 console.log('Netlify frontend and empty private database template built.');
+
